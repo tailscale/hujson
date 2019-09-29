@@ -21,6 +21,8 @@ var hujsonDecodeTests = []unmarshalTest{
 		*/
 		"X": /* comment between field name and value */ "x"
 	}`, disallowUnknownFields: false, out: T{Y: 7, X: "x"}},
+	{ptr: new(T), in: "{\n\"X\": \"x\",\n}", out: T{X: "x"}}, // trailing comma
+	{ptr: new([1]int), in: "[1, \n]", out: [1]int{1}},        // trailing comma
 }
 
 func TestHuDecode(t *testing.T) {

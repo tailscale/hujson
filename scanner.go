@@ -213,12 +213,6 @@ func isSpace(c byte) bool {
 
 // stateBeginValueOrEmpty is the state after reading `[`.
 func stateBeginValueOrEmpty(s *scanner, c, peek byte) int {
-	if s.skip(c, peek) {
-		return scanSkipSpace
-	}
-	if c == ']' {
-		return stateEndValue(s, c, peek)
-	}
 	return stateBeginValue(s, c, peek)
 }
 
@@ -236,6 +230,8 @@ func stateBeginValue(s *scanner, c, peek byte) int {
 		s.step = stateBeginValueOrEmpty
 		s.pushParseState(parseArrayValue)
 		return scanBeginArray
+	case ']':
+		return stateEndValue(s, c, peek)
 	case '"':
 		s.step = stateInString
 		return scanBeginLiteral
@@ -264,14 +260,6 @@ func stateBeginValue(s *scanner, c, peek byte) int {
 
 // stateBeginStringOrEmpty is the state after reading `{`.
 func stateBeginStringOrEmpty(s *scanner, c, peek byte) int {
-	if s.skip(c, peek) {
-		return scanSkipSpace
-	}
-	if c == '}' {
-		n := len(s.parseState)
-		s.parseState[n-1] = parseObjectValue
-		return stateEndValue(s, c, peek)
-	}
 	return stateBeginString(s, c, peek)
 }
 
@@ -283,6 +271,11 @@ func stateBeginString(s *scanner, c, peek byte) int {
 	if c == '"' {
 		s.step = stateInString
 		return scanBeginLiteral
+	}
+	if c == '}' {
+		n := len(s.parseState)
+		s.parseState[n-1] = parseObjectValue
+		return stateEndValue(s, c, peek)
 	}
 	return s.error(c, "looking for beginning of object key string")
 }
