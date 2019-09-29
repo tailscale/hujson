@@ -95,19 +95,30 @@ Input:
 	// help the compiler see that scanp is never negative, so it can remove
 	// some bounds checks below.
 	for scanp >= 0 {
+		buflen := len(dec.buf)
+		if err != io.EOF && buflen > 0 && (dec.buf[buflen-1] == '/' || dec.buf[buflen-1] == '*') {
+			// Make sure we buffer enough to successfully peek
+			// if the last character in the buffer might be
+			// part of a comment.
+			//
+			// Don't over-buffer generally, as we don't want to
+			// block unnecessarily when reading streams.
+			buflen--
+		}
 
 		// Look in the buffer for a new value.
-		for ; scanp < len(dec.buf); scanp++ {
+		for ; scanp < buflen; scanp++ {
 			c := dec.buf[scanp]
+			peek := peekAfter(dec.buf, scanp)
 			dec.scan.bytes++
-			switch dec.scan.step(&dec.scan, c) {
+			switch dec.scan.step(&dec.scan, c, peek) {
 			case scanEnd:
 				break Input
 			case scanEndObject, scanEndArray:
 				// scanEnd is delayed one byte.
 				// We might block trying to get that byte from src,
 				// so instead invent a space byte.
-				if stateEndValue(&dec.scan, ' ') == scanEnd {
+				if stateEndValue(&dec.scan, ' ', 0) == scanEnd {
 					scanp++
 					break Input
 				}
@@ -121,7 +132,7 @@ Input:
 		// Delayed until now to allow buffer scan.
 		if err != nil {
 			if err == io.EOF {
-				if dec.scan.step(&dec.scan, ' ') == scanEnd {
+				if dec.scan.step(&dec.scan, ' ', 0) == scanEnd {
 					break Input
 				}
 				if nonSpace(dec.buf) {

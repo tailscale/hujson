@@ -36,7 +36,7 @@ func compact(dst *bytes.Buffer, src []byte, escape bool) error {
 			dst.WriteByte(hex[src[i+2]&0xF])
 			start = i + 3
 		}
-		v := scan.step(&scan, c)
+		v := scan.step(&scan, c, peekAfter(src, i))
 		if v >= scanSkipSpace {
 			if v == scanError {
 				break
@@ -82,9 +82,9 @@ func Indent(dst *bytes.Buffer, src []byte, prefix, indent string) error {
 	scan.reset()
 	needIndent := false
 	depth := 0
-	for _, c := range src {
+	for i, c := range src {
 		scan.bytes++
-		v := scan.step(&scan, c)
+		v := scan.step(&scan, c, peekAfter(src, i))
 		if v == scanSkipSpace {
 			continue
 		}
