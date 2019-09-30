@@ -74,6 +74,9 @@ type scanner struct {
 	// Reached end of top-level value.
 	endTop bool
 
+	// Either '"' or '\'' for stateInString.
+	stringType byte
+
 	// Stack of what we're in the middle of - array values, object keys, object values.
 	parseState []int
 
@@ -232,7 +235,8 @@ func stateBeginValue(s *scanner, c, peek byte) int {
 		return scanBeginArray
 	case ']':
 		return stateEndValue(s, c, peek)
-	case '"':
+	case '"', '\'':
+		s.stringType = c
 		s.step = stateInString
 		return scanBeginLiteral
 	case '-':
@@ -268,7 +272,8 @@ func stateBeginString(s *scanner, c, peek byte) int {
 	if s.skip(c, peek) {
 		return scanSkipSpace
 	}
-	if c == '"' {
+	if c == '"' || c == '\'' {
+		s.stringType = c
 		s.step = stateInString
 		return scanBeginLiteral
 	}
@@ -341,8 +346,9 @@ func stateEndTop(s *scanner, c, peek byte) int {
 
 // stateInString is the state after reading `"`.
 func stateInString(s *scanner, c, peek byte) int {
-	if c == '"' {
+	if c == s.stringType {
 		s.step = stateEndValue
+		s.stringType = 0
 		return scanContinue
 	}
 	if c == '\\' {
@@ -358,7 +364,7 @@ func stateInString(s *scanner, c, peek byte) int {
 // stateInStringEsc is the state after reading `"\` during a quoted string.
 func stateInStringEsc(s *scanner, c, peek byte) int {
 	switch c {
-	case 'b', 'f', 'n', 'r', 't', '\\', '/', '"':
+	case 'b', 'f', 'n', 'r', 't', '\\', '/', '"', '\'':
 		s.step = stateInString
 		return scanContinue
 	case 'u':

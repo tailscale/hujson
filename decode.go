@@ -372,12 +372,13 @@ func (d *decodeState) rescanLiteral() {
 	data, i := d.data, d.off
 Switch:
 	switch data[i-1] {
-	case '"': // string
+	case '"', '\'': // string
+		quote := data[i-1]
 		for ; i < len(data); i++ {
 			switch data[i] {
 			case '\\':
 				i++ // escaped char
-			case '"':
+			case quote:
 				i++ // tokenize the closing quote too
 				break Switch
 			}
@@ -983,7 +984,7 @@ func (d *decodeState) literalStore(item []byte, v reflect.Value, fromQuoted bool
 			}
 		}
 
-	case '"': // string
+	case '"', '\'': // string
 		s, ok := unquoteBytes(item)
 		if !ok {
 			if fromQuoted {
@@ -1241,7 +1242,11 @@ func unquote(s []byte) (t string, ok bool) {
 }
 
 func unquoteBytes(s []byte) (t []byte, ok bool) {
-	if len(s) < 2 || s[0] != '"' || s[len(s)-1] != '"' {
+	if len(s) < 2 {
+		return
+	}
+	quote := s[0]
+	if (quote != '"' && quote != '\'') || s[len(s)-1] != quote {
 		return
 	}
 	s = s[1 : len(s)-1]
@@ -1252,7 +1257,7 @@ func unquoteBytes(s []byte) (t []byte, ok bool) {
 	r := 0
 	for r < len(s) {
 		c := s[r]
-		if c == '\\' || c == '"' || c < ' ' {
+		if c == '\\' || c == quote || c < ' ' {
 			break
 		}
 		if c < utf8.RuneSelf {
@@ -1335,7 +1340,7 @@ func unquoteBytes(s []byte) (t []byte, ok bool) {
 			}
 
 		// Quote, control characters are invalid.
-		case c == '"', c < ' ':
+		case c == quote, c < ' ':
 			return
 
 		// ASCII

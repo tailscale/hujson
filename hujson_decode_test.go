@@ -7,6 +7,7 @@ import (
 )
 
 var hujsonDecodeTests = []unmarshalTest{
+	{ptr: new(T), in: `{'X': 'xval'}`, out: T{X: "xval"}},
 	{ptr: new(int), in: "// comment\n7", out: 7},
 	{ptr: new(T), in: `// leading comment
 		{"X": "xval"}
@@ -23,6 +24,8 @@ var hujsonDecodeTests = []unmarshalTest{
 	}`, disallowUnknownFields: false, out: T{Y: 7, X: "x"}},
 	{ptr: new(T), in: "{\n\"X\": \"x\",\n}", out: T{X: "x"}}, // trailing comma
 	{ptr: new([1]int), in: "[1, \n]", out: [1]int{1}},        // trailing comma
+	{ptr: new(T), in: `{"X": 'a"b"c'}`, out: T{X: `a"b"c`}},
+	{ptr: new(T), in: `{'X': "a'b'c"}`, out: T{X: `a'b'c`}},
 }
 
 func TestHuDecode(t *testing.T) {
