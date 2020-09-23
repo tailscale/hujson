@@ -630,6 +630,11 @@ type structEncoder struct {
 type structFields struct {
 	list      []field
 	nameIndex map[string]int
+
+	// offsetField, if non-zero, is 1 + the index into the list
+	// slice for the field into which to store the int64 input offset
+	// of the open curly that begins a JSON object.
+	offsetField int
 }
 
 func (se structEncoder) encode(e *encodeState, v reflect.Value, opts encOpts) {
@@ -1040,11 +1045,12 @@ type field struct {
 	nameNonEsc  string // `"` + name + `":`
 	nameEscHTML string // `"` + HTMLEscape(name) + `":`
 
-	tag       bool
-	index     []int
-	typ       reflect.Type
-	omitEmpty bool
-	quoted    bool
+	tag           bool
+	isInputOffset bool
+	index         []int
+	typ           reflect.Type
+	omitEmpty     bool
+	quoted        bool
 
 	encoder encoderFunc
 }
@@ -1148,8 +1154,10 @@ func typeFields(t reflect.Type) structFields {
 					}
 				}
 
+				isInputOffset := opts.Contains("inputoffset") && ft.Kind() == reflect.Int64
+
 				// Record found field and index sequence.
-				if name != "" || !sf.Anonymous || ft.Kind() != reflect.Struct {
+				if name != "" || !sf.Anonymous || ft.Kind() != reflect.Struct || isInputOffset {
 					tagged := name != ""
 					if name == "" {
 						name = sf.Name
@@ -1164,6 +1172,7 @@ func typeFields(t reflect.Type) structFields {
 					}
 					field.nameBytes = []byte(field.name)
 					field.equalFold = foldFunc(field.nameBytes)
+					field.isInputOffset = isInputOffset
 
 					// Build nameEscHTML and nameNonEsc ahead of time.
 					nameEscBuf.Reset()
@@ -1174,6 +1183,7 @@ func typeFields(t reflect.Type) structFields {
 					field.nameNonEsc = `"` + field.name + `":`
 
 					fields = append(fields, field)
+
 					if count[f.typ] > 1 {
 						// If there were multiple instances, add a second,
 						// so that the annihilation code will see a duplicate.
@@ -1246,10 +1256,15 @@ func typeFields(t reflect.Type) structFields {
 		f.encoder = typeEncoder(typeByIndex(t, f.index))
 	}
 	nameIndex := make(map[string]int, len(fields))
+	var offsetField int
+
 	for i, field := range fields {
 		nameIndex[field.name] = i
+		if field.isInputOffset {
+			offsetField = i + 1
+		}
 	}
-	return structFields{fields, nameIndex}
+	return structFields{fields, nameIndex, offsetField}
 }
 
 // dominantField looks through the fields, all of which are known to

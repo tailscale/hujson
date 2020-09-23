@@ -3,6 +3,7 @@ package hujson
 import (
 	"bytes"
 	"reflect"
+	"strings"
 	"testing"
 )
 
@@ -44,5 +45,33 @@ func TestHuDecode(t *testing.T) {
 				t.Errorf("mismatch\nhave: %#+v\nwant: %#+v", v.Elem().Interface(), tt.out)
 			}
 		})
+	}
+}
+
+type ACL struct {
+	Action     string
+	ByteOffset int64 `json:",inputoffset"`
+}
+
+type ACLFile struct {
+	ACLs []ACL
+}
+
+func TestHuInputOffset(t *testing.T) {
+	var a ACLFile
+	err := NewDecoder(strings.NewReader(`{"ACLs": [
+    {"Action": "foo"},
+    {"Action": "bar"}, {"Action": "baz"},
+]}`)).Decode(&a)
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := ACLFile{ACLs: []ACL{
+		{Action: "foo", ByteOffset: 15},
+		{Action: "bar", ByteOffset: 38},
+		{Action: "baz", ByteOffset: 57},
+	}}
+	if !reflect.DeepEqual(a, want) {
+		t.Errorf("mismatch\n got: %+v\nwant: %+v\n", a, want)
 	}
 }

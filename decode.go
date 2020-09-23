@@ -708,6 +708,10 @@ func (d *decodeState) object(v reflect.Value) error {
 	case reflect.Struct:
 		fields = cachedTypeFields(t)
 		// ok
+
+		if fields.offsetField != 0 {
+			v.Field(fields.offsetField - 1).Set(reflect.ValueOf(int64(d.readIndex())))
+		}
 	default:
 		d.saveError(&UnmarshalTypeError{Value: "object", Type: t, Offset: int64(d.off)})
 		d.skip()
