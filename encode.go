@@ -1131,6 +1131,10 @@ func typeFields(t reflect.Type) structFields {
 				if !isValidTag(name) {
 					name = ""
 				}
+
+				hutag := sf.Tag.Get("hujson")
+				_, huOpts := parseTag(hutag)
+
 				index := make([]int, len(f.index)+1)
 				copy(index, f.index)
 				index[len(f.index)] = i
@@ -1154,7 +1158,7 @@ func typeFields(t reflect.Type) structFields {
 					}
 				}
 
-				isInputOffset := opts.Contains("inputoffset") && ft.Kind() == reflect.Int64
+				isInputOffset := huOpts.Contains("inputoffset") && ft.Kind() == reflect.Int64
 
 				// Record found field and index sequence.
 				if name != "" || !sf.Anonymous || ft.Kind() != reflect.Struct || isInputOffset {

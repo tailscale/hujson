@@ -50,7 +50,7 @@ func TestHuDecode(t *testing.T) {
 
 type ACL struct {
 	Action     string
-	ByteOffset int64 `json:",inputoffset"`
+	ByteOffset int64 `hujson:",inputoffset"`
 }
 
 type ACLFile struct {
