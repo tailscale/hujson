@@ -37,7 +37,7 @@ The changes to the [JSON grammar](https://json.org) are:
 +
 +linecomments
 +	'\n'
-+	linecomment
++	linecomment linecomments
 +
 +linecomment
 +	'0000' . '10FFFF' - '\n'
