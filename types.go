@@ -61,6 +61,26 @@
 //	 	'000A' ws
 //	 	'000D' ws
 //
+//
+// Use with the Standard Library
+//
+// This package operates with HuJSON as an AST. In order to parse HuJSON
+// into arbitrary Go types, use this package to parse HuJSON input as an AST,
+// strip the AST of any HuJSON-specific lexicographical elements, and
+// then pack the AST as a standard JSON output.
+//
+// Example usage:
+//
+//	ast, err := hujson.Parse(b)
+//	if err != nil {
+//		... // handle err
+//	}
+//	ast.Standardize()
+//	b = ast.Pack()
+//	if err := json.Unmarshal(b, &v); err != nil {
+//		... // handle err
+//	}
+//
 package hujson
 
 import (
