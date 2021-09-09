@@ -41,7 +41,7 @@ var testdata = []struct {
 		Value:       Literal("null"),
 		EndOffset:   5,
 	},
-	wantErr: fmt.Errorf("hujson: line 1, column 6: %w", errors.New("invalid character ',' after top-level value")),
+	wantErr: fmt.Errorf("line 1, column 6: %w", errors.New("invalid character ',' after top-level value")),
 }, {
 	in: "//😊 \r\t\n/*\r\t\n*/null//😊 \r\t\n/*\r\t\n*/",
 	want: Value{
@@ -55,17 +55,17 @@ var testdata = []struct {
 	wantStd: "       \r\t\n  \r\t\n  null       \r\t\n  \r\t\n  ",
 }, {
 	in:      "/?",
-	wantErr: fmt.Errorf("hujson: line 1, column 1: %w", errors.New("invalid character '/' at start of value")),
+	wantErr: fmt.Errorf("line 1, column 1: %w", errors.New("invalid character '/' at start of value")),
 }, {
 	in:      "//\xde\xad\xbe\xef\nnull",
-	wantErr: fmt.Errorf("hujson: line 1, column 1: %w", errors.New("invalid UTF-8 in comment")),
+	wantErr: fmt.Errorf("line 1, column 1: %w", errors.New("invalid UTF-8 in comment")),
 }, {
 	in: "null//",
 	want: Value{
 		Value:     Literal("null"),
 		EndOffset: 4,
 	},
-	wantErr: fmt.Errorf("hujson: line 1, column 5: %w", fmt.Errorf("parsing comment: %w", io.ErrUnexpectedEOF)),
+	wantErr: fmt.Errorf("line 1, column 5: %w", fmt.Errorf("parsing comment: %w", io.ErrUnexpectedEOF)),
 }, {
 	in: "null//\n",
 	want: Value{
@@ -77,10 +77,10 @@ var testdata = []struct {
 	wantStd: "null  \n",
 }, {
 	in:      `"\"\\\u0022😊`,
-	wantErr: fmt.Errorf("hujson: line 1, column 16: %w", fmt.Errorf("parsing string: %w", io.ErrUnexpectedEOF)),
+	wantErr: fmt.Errorf("line 1, column 16: %w", fmt.Errorf("parsing string: %w", io.ErrUnexpectedEOF)),
 }, {
 	in:      `"\xff"`,
-	wantErr: fmt.Errorf("hujson: line 1, column 1: %w", errors.New("invalid literal: \"\\xff\"")),
+	wantErr: fmt.Errorf("line 1, column 1: %w", errors.New("invalid literal: \"\\xff\"")),
 }, {
 	in:      `"\"\\\u0022😊"`,
 	want:    Value{Value: Literal(`"\"\\\u0022😊"`), EndOffset: 16},
@@ -93,31 +93,31 @@ var testdata = []struct {
 	wantStd: `3.14159E+435`,
 }, {
 	in:      `+1000`,
-	wantErr: fmt.Errorf("hujson: line 1, column 1: %w", errors.New("invalid literal: +1000")),
+	wantErr: fmt.Errorf("line 1, column 1: %w", errors.New("invalid literal: +1000")),
 }, {
 	in:      "{",
 	want:    Value{Value: &Object{}},
-	wantErr: fmt.Errorf("hujson: line 1, column 2: %w", fmt.Errorf("parsing value: %w", io.ErrUnexpectedEOF)),
+	wantErr: fmt.Errorf("line 1, column 2: %w", fmt.Errorf("parsing value: %w", io.ErrUnexpectedEOF)),
 }, {
 	in:      "{,}",
 	want:    Value{Value: &Object{}},
-	wantErr: fmt.Errorf("hujson: line 1, column 2: %w", errors.New("invalid character ',' at start of value")),
+	wantErr: fmt.Errorf("line 1, column 2: %w", errors.New("invalid character ',' at start of value")),
 }, {
 	in:      `{null:"v"`,
 	want:    Value{Value: &Object{}},
-	wantErr: fmt.Errorf("hujson: line 1, column 2: %w", errors.New("invalid character 'n' at start of object name")),
+	wantErr: fmt.Errorf("line 1, column 2: %w", errors.New("invalid character 'n' at start of object name")),
 }, {
 	in:      `{"k"`,
 	want:    Value{Value: &Object{}},
-	wantErr: fmt.Errorf("hujson: line 1, column 5: %w", fmt.Errorf("parsing object after name: %w", io.ErrUnexpectedEOF)),
+	wantErr: fmt.Errorf("line 1, column 5: %w", fmt.Errorf("parsing object after name: %w", io.ErrUnexpectedEOF)),
 }, {
 	in:      `{"k";`,
 	want:    Value{Value: &Object{}},
-	wantErr: fmt.Errorf("hujson: line 1, column 5: %w", errors.New("invalid character ';' after object name")),
+	wantErr: fmt.Errorf("line 1, column 5: %w", errors.New("invalid character ';' after object name")),
 }, {
 	in:      `{"k":}`,
 	want:    Value{Value: &Object{}},
-	wantErr: fmt.Errorf("hujson: line 1, column 6: %w", errors.New("invalid character '}' at start of value")),
+	wantErr: fmt.Errorf("line 1, column 6: %w", errors.New("invalid character '}' at start of value")),
 }, {
 	in: `{"k":"v"`,
 	want: Value{Value: &Object{
@@ -126,7 +126,7 @@ var testdata = []struct {
 			Value{StartOffset: 5, Value: Literal(`"v"`), EndOffset: 8},
 		}},
 	}},
-	wantErr: fmt.Errorf("hujson: line 1, column 9: %w", fmt.Errorf("parsing object after value: %w", io.ErrUnexpectedEOF)),
+	wantErr: fmt.Errorf("line 1, column 9: %w", fmt.Errorf("parsing object after value: %w", io.ErrUnexpectedEOF)),
 }, {
 	in: `{"k":"v"]`,
 	want: Value{Value: &Object{
@@ -135,7 +135,7 @@ var testdata = []struct {
 			Value{StartOffset: 5, Value: Literal(`"v"`), EndOffset: 8},
 		}},
 	}},
-	wantErr: fmt.Errorf("hujson: line 1, column 9: %w", errors.New("invalid character ']' after object value (expecting ',' or '}')")),
+	wantErr: fmt.Errorf("line 1, column 9: %w", errors.New("invalid character ']' after object value (expecting ',' or '}')")),
 }, {
 	in: ` { "k" : "v" } `,
 	want: Value{
@@ -173,23 +173,23 @@ var testdata = []struct {
 }, {
 	in:      "[",
 	want:    Value{Value: &Array{}},
-	wantErr: fmt.Errorf("hujson: line 1, column 2: %w", fmt.Errorf("parsing value: %w", io.ErrUnexpectedEOF)),
+	wantErr: fmt.Errorf("line 1, column 2: %w", fmt.Errorf("parsing value: %w", io.ErrUnexpectedEOF)),
 }, {
 	in:      "[,]",
 	want:    Value{Value: &Array{}},
-	wantErr: fmt.Errorf("hujson: line 1, column 2: %w", errors.New("invalid character ',' at start of value")),
+	wantErr: fmt.Errorf("line 1, column 2: %w", errors.New("invalid character ',' at start of value")),
 }, {
 	in: `["s"`,
 	want: Value{Value: &Array{
 		Elements: []Value{{StartOffset: 1, Value: Literal(`"s"`), EndOffset: 4}},
 	}},
-	wantErr: fmt.Errorf("hujson: line 1, column 5: %w", fmt.Errorf("parsing array after value: %w", io.ErrUnexpectedEOF)),
+	wantErr: fmt.Errorf("line 1, column 5: %w", fmt.Errorf("parsing array after value: %w", io.ErrUnexpectedEOF)),
 }, {
 	in: `["s"}`,
 	want: Value{Value: &Array{
 		Elements: []Value{{StartOffset: 1, Value: Literal(`"s"`), EndOffset: 4}},
 	}},
-	wantErr: fmt.Errorf("hujson: line 1, column 5: %w", errors.New("invalid character '}' after array value (expecting ',' or ']')")),
+	wantErr: fmt.Errorf("line 1, column 5: %w", errors.New("invalid character '}' after array value (expecting ',' or ']')")),
 }, {
 	in: ` [ "s" ] `,
 	want: Value{

@@ -27,7 +27,7 @@ func Parse(b []byte) (Value, error) {
 	}
 	if err != nil {
 		line, column := lineColumn(b, n)
-		err = fmt.Errorf("hujson: line %d, column %d: %w", line, column, err)
+		err = fmt.Errorf("line %d, column %d: %w", line, column, err)
 		return v, err
 	}
 	return v, nil
