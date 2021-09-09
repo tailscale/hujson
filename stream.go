@@ -41,6 +41,10 @@ func (dec *Decoder) UseNumber() { dec.d.useNumber = true }
 // non-ignored, exported fields in the destination.
 func (dec *Decoder) DisallowUnknownFields() { dec.d.disallowUnknownFields = true }
 
+// DisallowDuplicateFields causes the Decoder to return an error when the destination
+// is a struct and the input contains duplicate object keys.
+func (dec *Decoder) DisallowDuplicateFields() { dec.d.disallowDuplicateFields = true }
+
 // Decode reads the next JSON-encoded value from its
 // input and stores it in the value pointed to by v.
 //

@@ -269,9 +269,10 @@ type decodeState struct {
 		Struct     reflect.Type
 		FieldStack []string
 	}
-	savedError            error
-	useNumber             bool
-	disallowUnknownFields bool
+	savedError              error
+	useNumber               bool
+	disallowUnknownFields   bool
+	disallowDuplicateFields bool
 }
 
 // readIndex returns the position of the last byte read.
@@ -718,6 +719,7 @@ func (d *decodeState) object(v reflect.Value) error {
 		return nil
 	}
 
+	var sawField map[string]bool
 	var mapElem reflect.Value
 	origErrorContext := d.errorContext
 
@@ -739,6 +741,19 @@ func (d *decodeState) object(v reflect.Value) error {
 		key, ok := unquoteBytes(item)
 		if !ok {
 			panic(phasePanicMsg)
+		}
+		if d.disallowDuplicateFields {
+			if _, dup := sawField[string(key)]; dup {
+				d.saveError(&SyntaxError{
+					msg:    fmt.Sprintf("duplicate field %q in JSON object", key),
+					Offset: int64(start),
+				})
+			} else {
+				if sawField == nil {
+					sawField = map[string]bool{}
+				}
+				sawField[string(key)] = true
+			}
 		}
 
 		// Figure out field corresponding to key.

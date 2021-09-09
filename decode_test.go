@@ -2348,3 +2348,31 @@ func TestUnmarshalRecursivePointer(t *testing.T) {
 		t.Fatal(err)
 	}
 }
+
+func TestDupField(t *testing.T) {
+	var m map[string]interface{}
+	const input = `{"foo":1,"foo":2}`
+	if err := NewDecoder(strings.NewReader(input)).Decode(&m); err != nil {
+		t.Fatal(err)
+	}
+	if got, want := m["foo"], float64(2); got != want {
+		t.Errorf("foo = %v; want %v", got, want)
+	}
+
+	d := NewDecoder(strings.NewReader(input))
+	d.DisallowDuplicateFields()
+	err := d.Decode(&m)
+	switch err := err.(type) {
+	case nil:
+		t.Fatal("expected error")
+	default:
+		t.Errorf("unexpected error type %T", err)
+	case *SyntaxError:
+		if err.Offset != 9 {
+			t.Errorf("error offset = %d; want 9", err.Offset)
+		}
+		if got, want := err.Error(), "duplicate field \"foo\" in JSON object"; got != want {
+			t.Errorf("error = %q; want %q", got, want)
+		}
+	}
+}
