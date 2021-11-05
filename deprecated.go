@@ -50,6 +50,12 @@ func NewEncoder(w io.Writer) *Encoder {
 // Deprecated: Do not use. This will be deleted in the near future.
 // See the "Use with the Standard Library" section for alternatives.
 func Unmarshal(data []byte, v interface{}) error {
+	ast, err := Parse(data)
+	if err != nil {
+		return err
+	}
+	ast.Standardize()
+	data = ast.Pack()
 	return json.Unmarshal(data, v)
 }
 
