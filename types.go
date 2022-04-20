@@ -331,7 +331,7 @@ type Object struct {
 	// after the preceding open brace or comma and before the closing brace.
 	AfterExtra Extra
 }
-type ObjectMember = struct {
+type ObjectMember struct {
 	Name, Value Value
 }
 
