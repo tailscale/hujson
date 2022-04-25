@@ -2,9 +2,6 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-//go:build dev.fuzz
-// +build dev.fuzz
-
 package hujson
 
 import (
@@ -17,6 +14,9 @@ import (
 
 func Fuzz(f *testing.F) {
 	for _, tt := range testdata {
+		f.Add([]byte(tt.in))
+	}
+	for _, tt := range testdataFormat {
 		f.Add([]byte(tt.in))
 	}
 	f.Fuzz(func(t *testing.T, b []byte) {
@@ -41,6 +41,27 @@ func Fuzz(f *testing.F) {
 		b2 := v2.Pack()
 		if !json.Valid(b2) {
 			t.Fatalf("input %q: Standardize failure", b)
+		}
+
+		// Format should produce parsable HuJSON.
+		v3 := v.Clone()
+		v3.Format()
+		b3 := v3.Pack()
+		v4, err := Parse(b3)
+		if err != nil {
+			t.Fatalf("input %q: Parse after Format error: %v", b, err)
+		}
+
+		// Format should be idempotent.
+		v4.Format()
+		b4 := v4.Pack()
+		if !bytes.Equal(b3, b4) {
+			t.Fatalf("input %q: Format failed to be idempotent: %s", b, cmp.Diff(b3, b4))
+		}
+
+		// Format should preserve standard property.
+		if v.IsStandard() && !v3.IsStandard() {
+			t.Fatalf("input %q: Format failed to remain standard", b)
 		}
 	})
 }
