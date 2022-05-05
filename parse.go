@@ -9,6 +9,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"unicode"
 	"unicode/utf8"
 )
 
@@ -23,7 +24,7 @@ func lineColumn(b []byte, n int) (line, column int) {
 func Parse(b []byte) (Value, error) {
 	v, n, err := parseNext(0, b)
 	if err == nil && n < len(b) {
-		err = fmt.Errorf("invalid character %q after top-level value", b[n])
+		err = newInvalidCharacterError(b[n:], "after top-level value")
 	}
 	if err != nil {
 		line, column := lineColumn(b, n)
@@ -92,7 +93,7 @@ func parseNextTrimmed(n int, b []byte) (ValueTrimmed, int, error) {
 				return &obj, n, err
 			}
 			if vk.Value.Kind() != '"' {
-				return &obj, vk.StartOffset, fmt.Errorf("invalid character %q at start of object name", b[vk.StartOffset])
+				return &obj, vk.StartOffset, newInvalidCharacterError(b[vk.StartOffset:], "at start of object name")
 			}
 
 			// Parse the colon.
@@ -100,7 +101,7 @@ func parseNextTrimmed(n int, b []byte) (ValueTrimmed, int, error) {
 			case len(b) == n:
 				return &obj, n, fmt.Errorf("parsing object after name: %w", io.ErrUnexpectedEOF)
 			case b[n] != ':':
-				return &obj, n, fmt.Errorf("invalid character %q after object name", b[n])
+				return &obj, n, newInvalidCharacterError(b[n:], "after object name")
 			}
 			n++
 
@@ -121,7 +122,7 @@ func parseNextTrimmed(n int, b []byte) (ValueTrimmed, int, error) {
 				obj.Members[len(obj.Members)-1].Value.AfterExtra = nil
 				return &obj, n + len(`}`), nil
 			default:
-				return &obj, n, fmt.Errorf("invalid character %q after object value (expecting ',' or '}')", b[n])
+				return &obj, n, newInvalidCharacterError(b[n:], "after object value (expecting ',' or '}')")
 			}
 		}
 	case '}':
@@ -154,7 +155,7 @@ func parseNextTrimmed(n int, b []byte) (ValueTrimmed, int, error) {
 				arr.Elements[len(arr.Elements)-1].AfterExtra = nil
 				return &arr, n + len(`]`), nil
 			default:
-				return &arr, n, fmt.Errorf("invalid character %q after array value (expecting ',' or ']')", b[n])
+				return &arr, n, newInvalidCharacterError(b[n:], "after array value (expecting ',' or ']')")
 			}
 		}
 	case ']':
@@ -195,7 +196,7 @@ func parseNextTrimmed(n int, b []byte) (ValueTrimmed, int, error) {
 		}
 		switch lit := Literal(b[n0:n:n]); {
 		case len(lit) == 0:
-			return nil, n0, fmt.Errorf("invalid character %q at start of value", b[n0])
+			return nil, n0, newInvalidCharacterError(b[n0:], "at start of value")
 		case !lit.IsValid():
 			return nil, n0, fmt.Errorf("invalid literal: %s", lit)
 		default:
@@ -262,4 +263,20 @@ func consumeComment(b []byte) (n int) {
 		return -1
 	}
 	return len(start) + i + len(end)
+}
+
+func newInvalidCharacterError(prefix []byte, where string) error {
+	var what string
+	r, n := utf8.DecodeRune(prefix)
+	switch {
+	case r == utf8.RuneError && n == 1:
+		what = fmt.Sprintf(`'\x%02x'`, prefix[0])
+	case unicode.IsPrint(r):
+		what = fmt.Sprintf(`%q`, r)
+	case r <= '\uffff':
+		what = fmt.Sprintf(`'\u%04x'`, r)
+	default:
+		what = fmt.Sprintf(`'\U%08x'`, r)
+	}
+	return errors.New("invalid character " + what + " " + where)
 }
