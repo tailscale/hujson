@@ -240,6 +240,41 @@ var testdata = []struct {
 	},
 	wantMin: `[null,false,true,"string",0,{},[]]`,
 	wantStd: `      [      null      ,      false      ,      true      ,      "string"      ,      0      ,      {}      ,      []      ]      `,
+}, {
+	in: " \xff",
+	want: Value{
+		BeforeExtra: Extra(" "),
+		StartOffset: 1,
+	},
+	wantErr: fmt.Errorf("hujson: line 1, column 2: %w", errors.New("invalid character '\\xff' at start of value")),
+}, {
+	in: " '",
+	want: Value{
+		BeforeExtra: Extra(" "),
+		StartOffset: 1,
+	},
+	wantErr: fmt.Errorf("hujson: line 1, column 2: %w", errors.New("invalid character '\\'' at start of value")),
+}, {
+	in: " 💩",
+	want: Value{
+		BeforeExtra: Extra(" "),
+		StartOffset: 1,
+	},
+	wantErr: fmt.Errorf("hujson: line 1, column 2: %w", errors.New("invalid character '💩' at start of value")),
+}, {
+	in: " \uffff",
+	want: Value{
+		BeforeExtra: Extra(" "),
+		StartOffset: 1,
+	},
+	wantErr: fmt.Errorf("hujson: line 1, column 2: %w", errors.New("invalid character '\\uffff' at start of value")),
+}, {
+	in: " \U00101234",
+	want: Value{
+		BeforeExtra: Extra(" "),
+		StartOffset: 1,
+	},
+	wantErr: fmt.Errorf("hujson: line 1, column 2: %w", errors.New("invalid character '\\U00101234' at start of value")),
 }}
 
 func Test(t *testing.T) {
