@@ -3,7 +3,6 @@
 The `github.com/tailscale/hujson` package implements
 the [JWCC](https://nigeltao.github.io/blog/2021/json-with-commas-comments.html) extension
 of [standard JSON](https://datatracker.ietf.org/doc/html/rfc8259).
-This package is a fork of the Go standard library's `encoding/json`.
 
 The `JWCC` format permits two things over standard JSON:
 
