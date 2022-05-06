@@ -9,6 +9,19 @@ import (
 	"unicode"
 )
 
+// Standardize strips any features specific to HuJSON from b,
+// making it compliant with standard JSON per RFC 8259.
+// All comments and trailing commas are replaced with a space character
+// in order to preserve the original line numbers and byte offsets.
+func Standardize(b []byte) ([]byte, error) {
+	ast, err := Parse(b)
+	if err != nil {
+		return b, err
+	}
+	ast.Standardize()
+	return ast.Pack(), nil
+}
+
 const punchCardWidth = 80
 
 var (
