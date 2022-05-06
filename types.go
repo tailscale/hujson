@@ -71,12 +71,10 @@
 //
 // Example usage:
 //
-//	ast, err := hujson.Parse(b)
+//	b, err := hujson.Standardize(b)
 //	if err != nil {
 //		... // handle err
 //	}
-//	ast.Standardize()
-//	b = ast.Pack()
 //	if err := json.Unmarshal(b, &v); err != nil {
 //		... // handle err
 //	}
