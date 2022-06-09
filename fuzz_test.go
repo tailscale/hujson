@@ -65,3 +65,24 @@ func Fuzz(f *testing.F) {
 		}
 	})
 }
+
+func FuzzPatch(f *testing.F) {
+	for _, tt := range testdataPatch {
+		f.Add([]byte(tt.in), []byte(tt.patch))
+	}
+	f.Fuzz(func(t *testing.T, in, patch []byte) {
+		if len(in) > 1<<12 || len(patch) > 1<<8 {
+			t.Skip("inputs too large")
+		}
+
+		// Parse for valid HuJSON input.
+		v, err := Parse(in)
+		if err != nil {
+			t.Skipf("input %q: Parse error: %v", in, err)
+		}
+
+		// Apply the patch, which is highly unlikely to be valid.
+		// We are more interested that this does not panic.
+		v.Patch(patch)
+	})
+}
