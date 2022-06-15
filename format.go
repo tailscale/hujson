@@ -22,6 +22,33 @@ func Standardize(b []byte) ([]byte, error) {
 	return ast.Pack(), nil
 }
 
+// Minimize removes all whitespace, comments, and trailing commas from b,
+// making it compliant with standard JSON per RFC 8259.
+func Minimize(b []byte) ([]byte, error) {
+	ast, err := Parse(b)
+	if err != nil {
+		return b, err
+	}
+	ast.Minimize()
+	return ast.Pack(), nil
+}
+
+// Format formats b according to some opinionated heuristics for
+// how HuJSON should look. The exact output may change over time.
+// It is the equivalent of `go fmt` but for HuJSON.
+//
+// If the input is standard JSON, then the output will remain standard.
+// Format is idempotent such that formatting already formatted HuJSON
+// results in no changes.
+func Format(b []byte) ([]byte, error) {
+	ast, err := Parse(b)
+	if err != nil {
+		return b, err
+	}
+	ast.Format()
+	return ast.Pack(), nil
+}
+
 const punchCardWidth = 80
 
 var (
