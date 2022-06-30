@@ -11,6 +11,28 @@ import (
 	"github.com/google/go-cmp/cmp"
 )
 
+func TestFormatErrors(t *testing.T) {
+	tests := []struct {
+		name   string
+		format func([]byte) ([]byte, error)
+	}{
+		{"Standardize", Standardize},
+		{"Minimize", Minimize},
+		{"Format", Format},
+	}
+
+	const want = "[null,false,true,invalid]"
+	for _, tt := range tests {
+		got, err := tt.format([]byte(want))
+		if err == nil {
+			t.Errorf("%s error = nil, want non-nil", tt.name)
+		}
+		if string(got) != want {
+			t.Errorf("%s = %q, want %q", tt.name, got, want)
+		}
+	}
+}
+
 var testdataFormat = []struct {
 	in   string
 	want string

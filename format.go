@@ -13,6 +13,7 @@ import (
 // making it compliant with standard JSON per RFC 8259.
 // All comments and trailing commas are replaced with a space character
 // in order to preserve the original line numbers and byte offsets.
+// If an error is encountered, then b is returned as is along with the error.
 func Standardize(b []byte) ([]byte, error) {
 	ast, err := Parse(b)
 	if err != nil {
@@ -24,6 +25,7 @@ func Standardize(b []byte) ([]byte, error) {
 
 // Minimize removes all whitespace, comments, and trailing commas from b,
 // making it compliant with standard JSON per RFC 8259.
+// If an error is encountered, then b is returned as is along with the error.
 func Minimize(b []byte) ([]byte, error) {
 	ast, err := Parse(b)
 	if err != nil {
@@ -40,6 +42,7 @@ func Minimize(b []byte) ([]byte, error) {
 // If the input is standard JSON, then the output will remain standard.
 // Format is idempotent such that formatting already formatted HuJSON
 // results in no changes.
+// If an error is encountered, then b is returned as is along with the error.
 func Format(b []byte) ([]byte, error) {
 	ast, err := Parse(b)
 	if err != nil {
