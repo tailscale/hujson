@@ -88,6 +88,21 @@ func (v *Value) Format() {
 	v.UpdateOffsets()
 }
 
+// Range iterates through a Value in depth-first order and
+// calls f for each value (including the root value).
+// It stops iteration when f returns false.
+func (v *Value) Range(f func(v *Value) bool) bool {
+	if !f(v) {
+		return false
+	}
+	if comp, ok := v.Value.(composite); ok {
+		return comp.rangeValues(func(v2 *Value) bool {
+			return v2.Range(f)
+		})
+	}
+	return true
+}
+
 // normalize performs simple normalization changes. In particular, it:
 //   - normalizes strings,
 //   - normalizes empty objects and arrays as simply {} or [],
@@ -98,7 +113,7 @@ func (v *Value) Format() {
 func (v *Value) normalize() bool {
 	switch v2 := v.Value.(type) {
 	case Literal:
-		// Format string.
+		// Normalize string if there are escape characters.
 		if v2.Kind() == '"' && bytes.IndexByte(v2, '\\') >= 0 {
 			v.Value = String(v2.String())
 		}
