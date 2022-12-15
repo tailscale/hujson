@@ -6,6 +6,7 @@ package hujson
 
 import (
 	"bytes"
+	"strings"
 	"unicode"
 )
 
@@ -89,7 +90,7 @@ func (v *Value) Format() {
 }
 
 // normalize performs simple normalization changes. In particular, it:
-//   - normalizes strings,
+//   - normalizes strings and trims whitespace,
 //   - normalizes empty objects and arrays as simply {} or [],
 //   - normalizes whitespace between names and colons,
 //   - normalizes whitespace between values and commas.
@@ -99,8 +100,8 @@ func (v *Value) normalize() bool {
 	switch v2 := v.Value.(type) {
 	case Literal:
 		// Format string.
-		if v2.Kind() == '"' && bytes.IndexByte(v2, '\\') >= 0 {
-			v.Value = String(v2.String())
+		if v2.Kind() == '"' {
+			v.Value = String(strings.TrimSpace(v2.String()))
 		}
 	case composite:
 		// Cleanup for empty objects and arrays.
