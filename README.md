@@ -15,5 +15,20 @@ For details, see the JWCC docs at:
 
 https://nigeltao.github.io/blog/2021/json-with-commas-comments.html
 
+## Visual Studio Code association
 
+Visual Studio Code supports a similar `jsonc` (JSON with comments) format. To
+treat all `*.hujson` files as `jsonc` with trailing commas allowed, you can add
+the following snippet to your Visual Studio Code configuration:
 
+```json
+"files.associations": {
+    "*.hujson": "jsonc"
+},
+"json.schemas": [{
+    "fileMatch": ["*.hujson"],
+    "schema": {
+        "allowTrailingCommas": true
+    }
+}]
+```
