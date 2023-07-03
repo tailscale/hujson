@@ -78,17 +78,7 @@
 // This package operates with HuJSON as an AST. In order to parse HuJSON
 // into arbitrary Go types, use this package to parse HuJSON input as an AST,
 // strip the AST of any HuJSON-specific lexicographical elements, and
-// then pack the AST as a standard JSON output.
-//
-// Example usage:
-//
-//	b, err := hujson.Standardize(b)
-//	if err != nil {
-//		... // handle err
-//	}
-//	if err := json.Unmarshal(b, &v); err != nil {
-//		... // handle err
-//	}
+// then pack the AST as a standard JSON output. See the Example.
 package hujson
 
 import (
