@@ -67,13 +67,13 @@ var testdataFormat = []struct {
 	in:   "[//\r\t\n]",
 	want: "[ //\n]",
 }, {
-	in: `{"name" 	 	:"value" 	 	,"name":"value"}`,
+	in:   `{"name" 	 	:"value" 	 	,"name":"value"}`,
 	want: `{"name": "value", "name": "value"}`,
 }, {
 	in:   `{"name"/**/:"value"/**/,"name":"value"}`,
 	want: `{"name" /**/ : "value" /**/ , "name": "value"}`,
 }, {
-	in: `[null 	 	,null]`,
+	in:   `[null 	 	,null]`,
 	want: `[null, null]`,
 }, {
 	in:   `[null/**/,null]`,
