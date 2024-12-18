@@ -32,3 +32,14 @@ the following snippet to your Visual Studio Code configuration:
     }
 }]
 ```
+
+## JetBrains IDE association
+
+JetBrains IDEs (e.g. IntelliJ, WebStorm, GoLand) support the *JSON5* file type
+with syntax highlighting, and trailing comma support compatiable with HuJSON.
+Use these step to associate the `*.hujson` extension with the JSON5 file type.
+
+1. Go to: Settings -> Editor -> File Types -> Recognized File Types
+2. Select **JSON5** 
+3. Add `*.hujson` as a file name pattern
+4. Apply
