@@ -40,6 +40,6 @@ with syntax highlighting, and trailing comma support compatiable with HuJSON.
 Use these step to associate the `*.hujson` extension with the JSON5 file type.
 
 1. Go to: Settings -> Editor -> File Types -> Recognized File Types
-1. Select **JSON5** 
-2. Add `*.hujson` as a file name pattern
-3. Apply
+2. Select **JSON5** 
+3. Add `*.hujson` as a file name pattern
+4. Apply
