@@ -32,3 +32,6 @@ the following snippet to your Visual Studio Code configuration:
     }
 }]
 ```
+
+## Docs
+see https://pkg.go.dev/github.com/tailscale/hujson
