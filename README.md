@@ -17,6 +17,14 @@ For details, see the JWCC docs at:
 
 https://nigeltao.github.io/blog/2021/json-with-commas-comments.html
 
+## Formatting with hujsonfmt
+
+`hujsonfmt` is a program that formats HuJSON files. Install it by running:
+
+```
+go install github.com/tailscale/hujson/cmd/hujsonfmt@latest
+```
+
 ## Visual Studio Code association
 
 Visual Studio Code supports a similar `jsonc` (JSON with comments) format. To
