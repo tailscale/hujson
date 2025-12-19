@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"flag"
 	"fmt"
 	"io"
@@ -118,7 +119,9 @@ func processFile(info fs.FileInfo, filename string, in io.Reader) error {
 	case *diff:
 		printDiff(filename, src, output)
 	case *list:
-		fmt.Println(filename)
+		if !bytes.Equal(input, output) {
+			fmt.Println(filename)
+		}
 	case *write:
 		err = writeFile(info, filename, src, output)
 		if err != nil {
