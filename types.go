@@ -163,19 +163,25 @@ func (v *Value) Range(f func(v *Value) bool) bool {
 // starting with v itself.
 func (v *Value) All() iter.Seq[*Value] {
 	return func(yield func(*Value) bool) {
-		if !yield(v) {
-			return
-		}
-		if comp, ok := v.Value.(composite); ok {
-			for v2 := range comp.allValues() {
-				for v3 := range v2.All() {
-					if !yield(v3) {
-						return
-					}
-				}
+		v.walkAll(yield)
+	}
+}
+
+// walkAll recursively yields v and its descendants in depth-first order.
+func (v *Value) walkAll(yield func(*Value) bool) bool {
+	if !yield(v) {
+		return false
+	}
+
+	if comp, ok := v.Value.(composite); ok {
+		for v2 := range comp.allValues() {
+			if !v2.walkAll(yield) {
+				return false
 			}
 		}
 	}
+
+	return true
 }
 
 // ValueTrimmed is a JSON value without surrounding whitespace or comments.

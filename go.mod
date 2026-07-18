@@ -1,5 +1,5 @@
 module github.com/tailscale/hujson
 
-go 1.23
+go 1.26
 
-require github.com/google/go-cmp v0.5.8
+require github.com/google/go-cmp v0.7.0
