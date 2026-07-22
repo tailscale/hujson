@@ -35,3 +35,18 @@ func TestAll(t *testing.T) {
 		t.Errorf("mismatch (-want +got):\n%s", diff)
 	}
 }
+
+func BenchmarkAll(b *testing.B) {
+	v, err := Parse([]byte(`["fizz", {"key": ["value", {"foo": "bar"}]}, [1,2,3], "buzz"]`))
+	if err != nil {
+		b.Fatalf("Parse: %v", err)
+	}
+
+	b.ReportAllocs()
+
+	for b.Loop() {
+		for range v.All() {
+			// no-op
+		}
+	}
+}
