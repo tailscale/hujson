@@ -226,6 +226,11 @@ func consumeExtra(n int, b []byte) (int, error) {
 			case nc == 0:
 				return n, nil
 			case nc < 0:
+				if isLineComment {
+					if i := indexLineSeparator(b[n:]); i >= 0 {
+						return n + i, newInvalidCharacterError(b[n+i:], "in line comment")
+					}
+				}
 				return n, fmt.Errorf("parsing comment: %w", io.ErrUnexpectedEOF)
 			case !utf8.Valid(b[n : n+nc]):
 				return n, fmt.Errorf("invalid UTF-8 in comment")

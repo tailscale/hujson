@@ -376,6 +376,16 @@ func TestLineSeparators(t *testing.T) {
 			in:      "// hidden\u2029null\ntrue",
 			wantErr: "hujson: line 1, column 10: invalid character '\\u2029' in line comment",
 		},
+		{
+			name:    "U+2028 in line comment at EOF",
+			in:      "// hidden\u2028null",
+			wantErr: "hujson: line 1, column 10: invalid character '\\u2028' in line comment",
+		},
+		{
+			name:    "U+2029 in line comment at EOF",
+			in:      "// hidden\u2029null",
+			wantErr: "hujson: line 1, column 10: invalid character '\\u2029' in line comment",
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
