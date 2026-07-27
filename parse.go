@@ -221,13 +221,24 @@ func consumeExtra(n int, b []byte) (int, error) {
 			n += consumeWhitespace(b[n:])
 		// Skip past comments.
 		case '/':
+			isLineComment := bytes.HasPrefix(b[n:], lineCommentStart)
 			switch nc := consumeComment(b[n:]); {
 			case nc == 0:
 				return n, nil
 			case nc < 0:
+				if isLineComment {
+					if i := indexLineSeparator(b[n:]); i >= 0 {
+						return n + i, newInvalidCharacterError(b[n+i:], "in line comment")
+					}
+				}
 				return n, fmt.Errorf("parsing comment: %w", io.ErrUnexpectedEOF)
 			case !utf8.Valid(b[n : n+nc]):
 				return n, fmt.Errorf("invalid UTF-8 in comment")
+			case isLineComment:
+				if i := indexLineSeparator(b[n : n+nc]); i >= 0 {
+					return n + i, newInvalidCharacterError(b[n+i:], "in line comment")
+				}
+				n += nc
 			default:
 				n += nc
 			}
@@ -243,6 +254,15 @@ func consumeWhitespace(b []byte) (n int) {
 		n++
 	}
 	return n
+}
+
+func indexLineSeparator(b []byte) int {
+	i := bytes.IndexRune(b, '\u2028')
+	j := bytes.IndexRune(b, '\u2029')
+	if i < 0 || (j >= 0 && j < i) {
+		return j
+	}
+	return i
 }
 
 // consumeComment consumes a line or block comment start in b.

@@ -333,3 +333,69 @@ func Test(t *testing.T) {
 		}
 	}
 }
+
+func TestLineSeparators(t *testing.T) {
+	tests := []struct {
+		name    string
+		in      string
+		wantErr string
+	}{
+		{
+			name: "U+2028 in string",
+			in:   "\"a\u2028b\"",
+		},
+		{
+			name: "U+2029 in string",
+			in:   "\"a\u2029b\"",
+		},
+		{
+			name: "U+2028 in block comment",
+			in:   "/* a\u2028b */ null",
+		},
+		{
+			name: "U+2029 in block comment",
+			in:   "/* a\u2029b */ null",
+		},
+		{
+			name:    "U+2028 as whitespace",
+			in:      "null\u2028",
+			wantErr: "hujson: line 1, column 5: invalid character '\\u2028' after top-level value",
+		},
+		{
+			name:    "U+2029 as whitespace",
+			in:      "null\u2029",
+			wantErr: "hujson: line 1, column 5: invalid character '\\u2029' after top-level value",
+		},
+		{
+			name:    "U+2028 in line comment",
+			in:      "// hidden\u2028null\ntrue",
+			wantErr: "hujson: line 1, column 10: invalid character '\\u2028' in line comment",
+		},
+		{
+			name:    "U+2029 in line comment",
+			in:      "// hidden\u2029null\ntrue",
+			wantErr: "hujson: line 1, column 10: invalid character '\\u2029' in line comment",
+		},
+		{
+			name:    "U+2028 in line comment at EOF",
+			in:      "// hidden\u2028null",
+			wantErr: "hujson: line 1, column 10: invalid character '\\u2028' in line comment",
+		},
+		{
+			name:    "U+2029 in line comment at EOF",
+			in:      "// hidden\u2029null",
+			wantErr: "hujson: line 1, column 10: invalid character '\\u2029' in line comment",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, err := Parse([]byte(tt.in))
+			switch {
+			case err == nil && tt.wantErr != "":
+				t.Fatalf("Parse() error = nil, want %q", tt.wantErr)
+			case err != nil && err.Error() != tt.wantErr:
+				t.Fatalf("Parse() error = %q, want %q", err, tt.wantErr)
+			}
+		})
+	}
+}
