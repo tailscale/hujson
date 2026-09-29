@@ -180,6 +180,19 @@ var testdataPatch = []struct {
 	patch:   `[{ "op": "test", "path": "/noexist", "value": null }]`,
 	wantErr: errors.New(`hujson: patch operation 0: value not found`),
 }, {
+	in:    `[1,2]`,
+	patch: `[{ "op": "add", "path": "/2", "value": 3 }]`,
+	want:  `[1,2,3]`,
+}, {
+	in:    `[1,2]`,
+	patch: `[{ "op": "add", "path": "/-", "value": 3 }]`,
+	want:  `[1,2,3]`,
+}, {
+	in:      `[1,2]`,
+	patch:   `[{ "op": "add", "path": "/5", "value": 3 }]`,
+	wantErr: errors.New(`hujson: patch operation 0: array index out of range: 5`),
+	want:    `[1,2]`,
+}, {
 	in:      `{}`,
 	patch:   `[{`,
 	wantErr: fmt.Errorf(`hujson: line 1, column 3: %w`, fmt.Errorf("parsing value: %w", io.ErrUnexpectedEOF)),

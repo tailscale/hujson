@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"reflect"
+	"strconv"
 	"strings"
 )
 
@@ -156,6 +157,11 @@ func (v *Value) patchAdd(i int, op patchOperation) error {
 				comp.Members[s.idx].Name.Value = String(s.name)
 			}
 		case *Array:
+			// Per RFC 6902, section 4.1, the index must not be greater
+			// than the number of elements in the array.
+			if n, err := strconv.ParseUint(s.name, 10, 0); s.name != "-" && (err != nil || n != uint64(s.idx)) {
+				return fmt.Errorf("hujson: patch operation %d: array index out of range: %s", i, s.name)
+			}
 			insertAt(comp, s.idx, op.value)
 		}
 	}
