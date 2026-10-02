@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"io"
 	"reflect"
+	"strings"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -517,5 +518,43 @@ func TestPatch(t *testing.T) {
 				t.Errorf("Patch mismatch (-want +got):\n%s\n\ngot:\n%s\n\nwant:\n%s", diff, got, tt.want)
 			}
 		})
+	}
+}
+
+func TestPatchCommentsAfterValueColon(t *testing.T) {
+	for _, tt := range []struct{ name, input, op, path, want string }{
+		{"array add", `[]`, "add", "/-", `[42]`},
+		{"object add", `{}`, "add", "/item", `{"item":42}`},
+		{"array replace", `[0]`, "replace", "/0", `[42]`},
+		{"object replace", `{"item":0}`, "replace", "/item", `{"item":42}`},
+		{"root add", `null`, "add", "", `42`},
+	} {
+		for _, comment := range []string{"/* after colon */", "\n// after colon\n"} {
+			t.Run(tt.name+comment, func(t *testing.T) {
+				v, err := Parse([]byte(tt.input))
+				if err != nil {
+					t.Fatal(err)
+				}
+				patch := fmt.Sprintf(`[{"op":%q,"path":%q,
+// before value member
+"value":%s 42}]`, tt.op, tt.path, comment)
+				if err := v.Patch([]byte(patch)); err != nil {
+					t.Fatal(err)
+				}
+				v.Format()
+				got := string(v.Pack())
+				if !strings.Contains(got, "after colon") || !strings.Contains(got, "before value member") {
+					t.Fatalf("lost patch comments: %s", got)
+				}
+				v.Standardize()
+				want, err := Parse([]byte(tt.want))
+				if err != nil {
+					t.Fatal(err)
+				}
+				if !equalValue(v, want) {
+					t.Fatalf("patched value = %s; want %s", v.Pack(), tt.want)
+				}
+			})
+		}
 	}
 }

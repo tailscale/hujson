@@ -119,7 +119,12 @@ func parsePatch(patch []byte) ([]patchOperation, error) {
 				}
 				op.from = m.Value.Value.(Literal).String()
 			case "value":
-				m.Value.BeforeExtra = obj.beforeExtraAt(j + 0).extractLeadingComments(true)
+				leading := obj.beforeExtraAt(j + 0).extractLeadingComments(true)
+				// Comments between the colon and value belong to the value too.
+				if m.Value.BeforeExtra.hasComment() {
+					leading = append(leading, m.Value.BeforeExtra...)
+				}
+				m.Value.BeforeExtra = leading
 				m.Value.AfterExtra = obj.beforeExtraAt(j + 1).extractTrailingcomments(true)
 				op.value = m.Value
 			}
