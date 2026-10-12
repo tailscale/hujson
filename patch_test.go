@@ -499,6 +499,22 @@ var testdataPatch = []struct {
 	// Comment3
 	"value3" // Comment4
 ]`,
+}, {
+	// RFC 6902, section 4.1. An index equal to the length appends.
+	in:    `[1,2]`,
+	patch: `[{ "op": "add", "path": "/2", "value": 3 }]`,
+	want:  `[1,2,3]`,
+}, {
+	// The "-" token also appends.
+	in:    `[1,2]`,
+	patch: `[{ "op": "add", "path": "/-", "value": 3 }]`,
+	want:  `[1,2,3]`,
+}, {
+	// An index past the length is an error and leaves the array unchanged.
+	in:      `[1,2]`,
+	patch:   `[{ "op": "add", "path": "/5", "value": 3 }]`,
+	want:    `[1,2]`,
+	wantErr: errors.New(`hujson: patch operation 0: array index 5 is greater than the array length`),
 }}
 
 func TestPatch(t *testing.T) {

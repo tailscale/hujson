@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"reflect"
+	"strconv"
 	"strings"
 )
 
@@ -156,6 +157,16 @@ func (v *Value) patchAdd(i int, op patchOperation) error {
 				comp.Members[s.idx].Name.Value = String(s.name)
 			}
 		case *Array:
+			// RFC 6902, section 4.1: the index must not be greater than
+			// the number of elements. An index equal to the length, and
+			// the "-" token, append. find reports every missing index as
+			// the array length, so compare the requested index with it.
+			if s.name != "-" {
+				n, nerr := strconv.ParseUint(s.name, 10, 0)
+				if nerr != nil || uint64(s.idx) != n {
+					return fmt.Errorf("hujson: patch operation %d: array index %s is greater than the array length", i, s.name)
+				}
+			}
 			insertAt(comp, s.idx, op.value)
 		}
 	}
