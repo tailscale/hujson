@@ -14,6 +14,9 @@ import (
 // All comments and trailing commas are replaced with a space character
 // in order to preserve the original line numbers and byte offsets.
 // If an error is encountered, then b is returned as is along with the error.
+//
+// Standardize may modify b. Callers that need to preserve the original input
+// should pass a copy, for example Standardize(bytes.Clone(b)).
 func Standardize(b []byte) ([]byte, error) {
 	ast, err := Parse(b)
 	if err != nil {
