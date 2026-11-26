@@ -62,10 +62,12 @@ var testdata = []struct {
 }, {
 	in: "null//",
 	want: Value{
-		Value:     Literal("null"),
-		EndOffset: 4,
+		Value:      Literal("null"),
+		EndOffset:  4,
+		AfterExtra: Extra("//"),
 	},
-	wantErr: fmt.Errorf("hujson: line 1, column 5: %w", fmt.Errorf("parsing comment: %w", io.ErrUnexpectedEOF)),
+	wantMin: "null",
+	wantStd: "null  ",
 }, {
 	in: "null//\n",
 	want: Value{

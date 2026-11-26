@@ -222,15 +222,14 @@ func consumeExtra(n int, b []byte) (int, error) {
 		// Skip past comments.
 		case '/':
 			isLineComment := bytes.HasPrefix(b[n:], lineCommentStart)
-			switch nc := consumeComment(b[n:]); {
+			nc := consumeComment(b[n:])
+			if nc < 0 && isLineComment {
+				nc = len(b) - n // a line comment at the end of the input may omit its final newline
+			}
+			switch {
 			case nc == 0:
 				return n, nil
 			case nc < 0:
-				if isLineComment {
-					if i := indexLineSeparator(b[n:]); i >= 0 {
-						return n + i, newInvalidCharacterError(b[n+i:], "in line comment")
-					}
-				}
 				return n, fmt.Errorf("parsing comment: %w", io.ErrUnexpectedEOF)
 			case !utf8.Valid(b[n : n+nc]):
 				return n, fmt.Errorf("invalid UTF-8 in comment")

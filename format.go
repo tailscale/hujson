@@ -388,6 +388,10 @@ func (b *Extra) format(depth int, opts formatOptions) {
 
 		// Handle comments.
 		n := consumeComment(in)
+		if n < 0 && bytes.HasPrefix(in, lineCommentStart) {
+			in = append(in[:len(in):len(in)], '\n') // a final line comment may omit its newline
+			n = len(in)
+		}
 		if n <= 0 {
 			return // invalid comment
 		}
