@@ -119,13 +119,15 @@ func processFile(info fs.FileInfo, filename string, in io.Reader) error {
 	case *diff:
 		printDiff(filename, src, output)
 	case *list:
-		if !bytes.Equal(input, output) {
+		if !bytes.Equal(src, output) {
 			fmt.Println(filename)
 		}
 	case *write:
-		err = writeFile(info, filename, src, output)
-		if err != nil {
-			return err
+		if !bytes.Equal(src, output) {
+			err = writeFile(info, filename, src, output)
+			if err != nil {
+				return err
+			}
 		}
 	default:
 		fmt.Print(string(output))
